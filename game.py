@@ -107,7 +107,7 @@ def play_game():
 
 if __name__ == "__main__":
        play_game()
-commit -m "Add Thai Food Guessing Game"
+commit "Add Thai Food Guessing Game"
 git branch -M main
 git remote add origin https://github.com/USERNAME/REPOSITORY_NAME.git
 git push -u origin main
