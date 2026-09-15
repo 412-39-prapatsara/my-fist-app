@@ -103,3 +103,6 @@ def play_game():
 
     print(f"📊 ผลการประเมิน: {rating}")
     print("==========================================")
+
+if __name__ == "__main__":
+       play_game()
