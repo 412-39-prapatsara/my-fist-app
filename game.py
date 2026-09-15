@@ -1,5 +1,8 @@
 import streamlit as st
 
+st.set_page_config(page_title="เกมทายคำศัพท์หมวดอาหารไทย", page_icon="🥘")
+
+# ข้อมูลคำถาม
 QUESTIONS = [
     {
         "hint": "🐷🌿🔥 หมู + ใบเขียว + พริก + กระทะไฟแรง = ?",
@@ -63,46 +66,63 @@ QUESTIONS = [
     },
 ]
 
+# กำหนด Session State สำหรับบันทึกสถานะเกม
+if "current_q" not in st.session_state:
+    st.session_state.current_q = 0
+if "score" not in st.session_state:
+    st.session_state.score = 0
+if "finished" not in st.session_state:
+    st.session_state.finished = False
 
-def evaluate_score(score: int) -> str:
+st.title("🎉 เกมทายคำศัพท์หมวดอาหารไทย 🥘")
+
+# เมื่อจบเกมแล้ว
+if st.session_state.finished:
+    score = st.session_state.score
+    st.subheader(f"🎯 คะแนนรวม: {score}/{len(QUESTIONS)} คะแนน")
+
     if score == 12:
-        return "🏆 ระดับยอดเยี่ยม"
+        st.balloons()
+        st.success("🏆 ระดับยอดเยี่ยม!")
     elif 6 <= score <= 11:
-        return "👍 ระดับดี"
+        st.info("👍 ระดับดี")
     elif 1 <= score <= 5:
-        return "✌️ พยายามอีกนิด"
+        st.warning("✌️ พยายามอีกนิด")
     else:
-        return "💀 แพ้"
+        st.error("💀 แพ้")
 
+    if st.button("🔄 เล่นใหม่อีกครั้ง"):
+        st.session_state.current_q = 0
+        st.session_state.score = 0
+        st.session_state.finished = False
+        st.rerun()
 
-def play_game():
-    score = 0
-    total = len(QUESTIONS)
+# ขณะกำลังเล่นเกม
+else:
+    q_idx = st.session_state.current_q
+    q_data = QUESTIONS[q_idx]
 
-    print("==========================================")
-    print("      🎉 เกมทายคำศัพท์หมวดอาหารไทย 🎉")
-    print("==========================================")
-    print("คำชี้แจง: ทายชื่อเมนูอาหารจากคำใบ้ต่อไปนี้\n")
+    st.write(f"### ข้อที่ {q_idx + 1} / {len(QUESTIONS)}")
+    st.info(f"คำใบ้: {q_data['hint']}")
 
-    for idx, item in enumerate(QUESTIONS, 1):
-        print(f"ข้อที่ {idx}/{total}")
-        print(f"คำใบ้: {item['hint']}")
+    user_ans = st.text_input(
+        "พิมพ์คำตอบของคุณ:", key=f"input_{q_idx}"
+    ).strip()
 
-        user_ans = input("คำตอบของคุณ: ").strip()
+    if st.button("ส่งคำตอบ"):
+        clean_user_ans = user_ans.replace(" ", "")
+        valid_answers = [a.replace(" ", "") for a in q_data["answers"]]
 
-        if user_ans.replace(" ", "") in [a.replace(" ", "") for a in item["answers"]]:
-            print("✅ ถูกต้องครับ/ค่ะ!\n")
-            score += 1
+        if clean_user_ans in valid_answers:
+            st.success("✅ ถูกต้องครับ/ค่ะ!")
+            st.session_state.score += 1
         else:
-            print(f"❌ ผิดครับ/ค่ะ! คำตอบคือ: {item['display']}\n")
+            st.error(f"❌ ผิดครับ/ค่ะ! คำตอบคือ: {q_data['display']}")
 
-        time.sleep(0.3)
+        # ไปยังข้อถัดไป
+        if q_idx + 1 < len(QUESTIONS):
+            st.session_state.current_q += 1
+        else:
+            st.session_state.finished = True
 
-    print("==========================================")
-    print(f"🎯 คะแนนรวม: {score}/{total} คะแนน")
-    print(f"📊 ผลการประเมิน: {evaluate_score(score)}")
-    print("==========================================")
-
-
-if __name__ == "__main__":
-    play_game()
+        st.rerun()
